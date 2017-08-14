@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<updates>
+  <update version="1.00">
+    <files>
+      <file path="Components/LiveSplit.Crysis3.dll" status="changed"/>
+      <file path="Components/c3nl.dll" status="changed"/>
+      <file path="Components/c3nl_loader.exe" status="changed"/>
+    </files>
+    <changelog>
+      <change>Initial.</change>
+    </changelog>
+  </update>
+</updates>
