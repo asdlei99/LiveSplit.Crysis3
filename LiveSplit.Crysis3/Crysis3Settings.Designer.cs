@@ -60,7 +60,6 @@
             this.LoadRemovalToggled.TabIndex = 2;
             this.LoadRemovalToggled.Text = "Load Removal";
             this.LoadRemovalToggled.UseVisualStyleBackColor = true;
-            this.LoadRemovalToggled.Visible = false;
             this.LoadRemovalToggled.CheckedChanged += new System.EventHandler(this.LoadRemovalToggled_CheckedChanged);
             // 
             // Crysis3Settings
