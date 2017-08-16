@@ -1,5 +1,7 @@
 #include "stdafx.h"
 
+// #define DEBUG
+
 int(__thiscall *ExecuteCommandOriginal)(DWORD **, char *, char, char);
 int(__thiscall *ShowWaitOriginal)(int, int, int, int);
 int(__thiscall *ShowMenuOriginal)(int, int);
@@ -7,7 +9,7 @@ int(__thiscall *FrameFuncOriginal)(void *this_);
 void(*StartOriginal)();
 int(__thiscall *EndOriginal)(int this_, int a2);
 
-bool loading = false;
+bool loading = false, level_load = false;
 char last[0xFF] = { 0 };
 int level = -1;
 
@@ -45,10 +47,8 @@ void Loading(bool a) {
 
 int __fastcall ExecuteCommandHook(DWORD **this_, void *idle_, char *a2, char a3, char a4) {
 	if (!loading && (memcmp(a2, "load", 4) == 0 || memcmp(a2, "disconnect", 10) == 0 || memcmp(a2, "map ", 4) == 0)) {
-		Loading(true);
-		strcpy(last, a2);
-
 		if (memcmp(a2, "map ", 4) == 0) {
+			level_load = true;
 			int new_level = -1;
 			if (StrStrIA(a2, "map Fields nb")) {
 				new_level = 1;
@@ -70,7 +70,14 @@ int __fastcall ExecuteCommandHook(DWORD **this_, void *idle_, char *a2, char a3,
 				if (new_level != 7) Send("split\n");
 				level = new_level;
 			}
+
+			printf("level load\n");
+		} else {
+			level_load = false;
 		}
+
+		strcpy(last, a2);
+		Loading(true);
 	}
 
 	printf("\t%s\n", a2);
@@ -81,6 +88,7 @@ int __fastcall ExecuteCommandHook(DWORD **this_, void *idle_, char *a2, char a3,
 int __fastcall ShowWaitHook(int this_, void *idle_, int a2, int a3, int a4) {
 	if (loading && (a2 == 30 || a2 == 41)) {
 		Loading(false);
+		if (level_load) level_load = false;
 	}
 	return ShowWaitOriginal(this_, a2, a3, a4);
 }
@@ -90,15 +98,16 @@ int __fastcall ShowMenuHook(int this_, void *idle_, int a2) {
 	
 	int ret = ShowMenuOriginal(this_, a2);
 
-	if (isMenu && loading) {
+	if (isMenu && loading && !level_load) {
 		Loading(false);
+		if (level_load) level_load = false;
 	}
 
 	return ret;
 }
 
 int __fastcall FrameFuncHook(void *this_, void *idle_) {
-	if (loading) {
+	if (loading && !level_load) {
 		Loading(false);
 	}
 
@@ -135,10 +144,12 @@ char __fastcall EndHook(int this_, void *idle_, int a2) {
 }
 
 void MainThread() {
-	/* AllocConsole();
+#ifdef DEBUG
+	AllocConsole();
 	freopen("CONIN$", "r", stdin);
 	freopen("CONOUT$", "w", stdout);
-	freopen("CONOUT$", "w", stderr); */
+	freopen("CONOUT$", "w", stderr);
+#endif
 
 	WSADATA wsadata;
 	WSAStartup(MAKEWORD(2, 2), &wsadata);
